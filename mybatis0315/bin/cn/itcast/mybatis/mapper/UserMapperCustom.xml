@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+在mapper中配置无数个sql语句
+ namespace:命名空间，用于隔离sql语句 
+ namespace在mapper代理开发中有重要作用：将mapper映射文件和mapper接口关联
+ -->
+<mapper namespace="cn.itcast.mybatis.mapper.UserMapperCustom">
+
+	<!-- 定义sql片段
+	开发经验：
+	建议将单表的查询条件单独定义sql片段，片段 的可重用性才高
+	建议不要包括where
+	 -->
+	<sql id="query_user_where">
+			<!-- where:
+		相当 sql中where关键字，可以将第一个条件前边的and去除
+		 -->
+		
+			<if test="user!=null">
+			<if test="user.username!=null and user.username!=''">
+				and username like '%${user.username}%' 
+			</if> 
+		</if>
+		<if test="user!=null">
+			<if test="user.id!=null and user.id!=''">
+				and id=#{user.id}
+			</if>
+		</if>
+	
+	</sql>
+	
+
+	
+	<!-- 定义resultMap将列名和pojo的属性作映射关系
+	id：唯一标识 一个resultMap，引用resultMap是：namespace+"."+resultMap的id
+	type：最终映射的java对象类型
+	
+	 -->
+	 <resultMap type="user" id="userListResultMap">
+	    <!-- 
+	    id：指定结果集唯一标识，如果有多列决定唯一定义多个id
+	    <id/>
+	 	<id/>
+	 	
+	 	column：sql查询结果集的列名
+	 	property：要将列映射到pojo的哪个属性中
+	     -->
+	 	<id column="id_" property="id"/>
+	 	<!-- 
+	 	result定义普通列的映射关系
+	 	column：sql查询结果集的列名
+	 	property：要将列映射到pojo的哪个属性中
+	 	 -->
+	 	<result column="username_" property="username"/>
+	 	<result column="birthday_" property="birthday"/>
+	 </resultMap>
+
+	<select id="findUserListByResultMap" parameterType="queryUserVo" resultMap="userListResultMap">
+		select id id_,username username_,birthday birthday_ from user where username like '%${user.username}%'
+	</select>
+	
+	<!-- 综合条件查询用户信息 
+	parameterType：指定输入参数类型 ${}从输入参数中通过OGNL（属性.属性.属性.属性...）取值
+	-->
+	<select id="findUserList" parameterType="queryUserVo" resultType="user">
+		select id,username,birthday from user 
+		<where>
+		<!-- 引用 sql片段 
+		如果要引用其它mapper下的sql片段，前边加namespace
+		-->
+		<include refid="query_user_where"></include>
+		</where>
+		
+	</select>
+	
+	<!-- 根据查询条件查询用户总数 -->
+	<select id="findUserCount" parameterType="queryUserVo" resultType="int">
+		select count(*) from user
+			<where>
+		
+		<!-- 引用 sql片段 
+		如果要引用其它mapper下的sql片段，前边加namespace
+		-->
+		<include refid="query_user_where"></include>
+		</where>
+		
+	</select>
+	
+
+	
+</mapper>

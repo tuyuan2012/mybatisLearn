@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+在mapper中配置无数个sql语句
+ namespace:命名空间，用于隔离sql语句 
+ namespace在mapper代理开发中有重要作用：将mapper映射文件和mapper接口关联
+ -->
+<mapper namespace="cn.itcast.mybatis.mapper.UserMapper">
+	<!-- 用户id查询用户信息 
+	id：用于唯 一标识 一个sql语句，该 select将被封装到一个Mappedstatement对象中所以建议称为statement的id
+	parameterMap：输入 映射，过期了
+	这里使用parameterType：设置输入 参数类型
+	resultType：指定输出结果映射的类型，确切指单条记录所映射的类型，需要指定pojo的全路径
+	#{}：表示一个占位符号
+	#{id}：表示接收输入 参数id，如果输入 参数是基本类型，#{}中间可以使用任意名称
+	-->
+	<select id="findUserById" parameterType="int" resultType="user">
+		select * from user where id=#{id}
+	</select>
+	
+	<!-- 根据用户名称查询
+	${}：表示一个sql拼接符号，${value}表示接收输入 参数将接收到参数内容不加任何修饰拼接在sql语句中，如果输入 参数是基本类型，${}中间只能使用value
+	 -->
+	<select id="findUserByName" parameterType="string" resultType="cn.itcast.mybatis.po.User">
+		select * from user where username like '%${value}%'
+	</select>
+	
+	<!-- 插入一条记录到用户表
+	parameterType：输入 用户信息，指定用户的po类型
+	#{}：接收输入 参数，使用OGNL解析对象 中的属性，表示方式就是对象.属性.属性....
+	#{username}：表示解析到输入 参数user对象的username属性值
+	 -->
+	<insert id="insertUser" parameterType="cn.itcast.mybatis.po.User">
+		<!-- 
+		order:指定select last_insert_id()执行顺序，相对于insert into...这个语句来说
+		resultType：select last_insert_id()返回类型
+		keyProperty：将select last_insert_id()返回值设置到user对象的哪个属性中
+		 -->
+		<selectKey order="AFTER" resultType="int" keyProperty="id"  >
+			select last_insert_id()
+		</selectKey>
+		insert into user(username,birthday,sex,address) values(#{username},#{birthday},#{sex},#{address})
+	</insert>
+	
+	
+	<!-- 使用uuid 方式 -->
+	<!-- <insert id="insertUser" parameterType="cn.itcast.mybatis.po.User">
+		
+		order:指定select last_insert_id()执行顺序，相对于insert into...这个语句来说
+		resultType：select last_insert_id()返回类型
+		keyProperty：将select last_insert_id()返回值设置到user对象的哪个属性中
+		
+		<selectKey order="BEFORE" resultType="java.lang.String" keyProperty="id"  >
+			select uuid()
+		</selectKey>
+		insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+	</insert> -->
+	
+	<!-- 删除用户 -->
+	<delete id="deleteUser"  parameterType="int" >
+		delete from user where id=#{value}
+	</delete>
+	
+	<!-- 更新用户
+	parameterType：输入 的user对象中id属性值必须有
+	 -->
+	<update id="updateUser" parameterType="cn.itcast.mybatis.po.User">
+		update user set username=#{username},birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+	</update>
+	
+	
+</mapper>
