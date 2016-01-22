@@ -8,8 +8,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  namespace在mapper代理开发中有重要作用
  -->
 <mapper namespace="test">
-	<!-- 用户id查询用户信息 
-	id：用于唯 一标识 一个sql语句，该 select将被封装到一个Mappedstatement对象中所以建议称为statement的id
+	<!-- 用户id查询用户信息
+	id：用于唯 一标识 一个sql语句，该 select将被封装到一个Mappedstatement对象中，所以建议称为statement的id
 	parameterMap：输入 映射，过期了
 	这里使用parameterType：设置输入 参数类型
 	resultType：指定输出结果映射的类型，确切指单条记录所映射的类型，需要指定pojo的全路径

@@ -33,7 +33,7 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 		
 	</typeAliases>
 	
-	<!-- 和spring整合后 environments配置将废除，要用到第三方的数据源配置-->
+	<!-- 和spring整合后 environments配置将废除，到时要用到第三方的数据源配置-->
 	<!-- mybatis运行环境配置 -->
 	<environments default="development">
 		<environment id="development">

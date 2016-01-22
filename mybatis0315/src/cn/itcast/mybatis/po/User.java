@@ -18,8 +18,6 @@ public class User {
 	private Date birthday;// 生日
 	private String address;// 地址
 	
-	
-	
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", sex=" + sex
@@ -55,6 +53,5 @@ public class User {
 	public void setAddress(String address) {
 		this.address = address;
 	}
-	
 	
 }
