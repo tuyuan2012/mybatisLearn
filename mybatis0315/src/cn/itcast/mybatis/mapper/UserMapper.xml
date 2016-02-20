@@ -8,6 +8,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  namespace在mapper代理开发中有重要作用：将mapper映射文件和mapper接口关联
  -->
 <mapper namespace="cn.itcast.mybatis.mapper.UserMapper">
+
+	<!-- 开启本mapper的二级缓存 -->
+	<cache />
+	
 	<!-- 用户id查询用户信息 
 	id：用于唯 一标识 一个sql语句，该 select将被封装到一个Mappedstatement对象中所以建议称为statement的id
 	parameterMap：输入 映射，过期了
@@ -16,9 +20,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	#{}：表示一个占位符号
 	#{id}：表示接收输入 参数id，如果输入 参数是基本类型，#{}中间可以使用任意名称
 	-->
-	<select id="findUserById" parameterType="int" resultType="user">
+	<select id="findUserById" parameterType="int" resultType="user" >
 		select * from user where id=#{id}
 	</select>
+
 	
 	<!-- 根据用户名称查询
 	${}：表示一个sql拼接符号，${value}表示接收输入 参数将接收到参数内容不加任何修饰拼接在sql语句中，如果输入 参数是基本类型，${}中间只能使用value
@@ -57,6 +62,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		</selectKey>
 		insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
 	</insert> -->
+	
+	<!-- 使用oracle序列生成主键 -->
+	<!-- <insert id="insertUser" parameterType="cn.itcast.mybatis.po.User">
+		
+		order:指定select last_insert_id()执行顺序，相对于insert into...这个语句来说
+		resultType：select 序列名.nextval from fual返回类型
+		keyProperty：将select last_insert_id()返回值设置到user对象的哪个属性中
+		
+		<selectKey order="BEFORE" resultType="java.lang.String" keyProperty="id"  >
+			select 序列名.nextval from fual
+		</selectKey>
+		insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+	</insert>  -->
 	
 	<!-- 删除用户 -->
 	<delete id="deleteUser"  parameterType="int" >

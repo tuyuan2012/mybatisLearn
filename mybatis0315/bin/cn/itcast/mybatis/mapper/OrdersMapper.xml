@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.itcast.mybatis.mapper.OrdersMapper">
+
+	<!-- 订单查询条件单独定义一个sql片段 -->
+	<sql id="query_orders_where">
+		<if test="orders!=null">
+			 <if test="orders.id!=null and orders.id!=''">
+			 	and id=#{orders.id}
+			 </if>
+			 <if test="orders.number!=null and orders.number!=''">
+			 	and number=#{orders.number}
+			 </if>
+		</if>
+		
+		<!-- 下边要拼接
+		AND ( id=3 OR id=4)
+		 -->
+		 <!-- 
+		 collection：接收parameterType指定输入参数中的集合对象
+		 open：开始遍历拼接的sql
+		 close：结束遍历拼接的sql
+		 separator：两次遍历中间所拼接的sql
+		  -->
+		 <foreach collection="ids" open="AND (" close=")" item="id" separator=" or ">
+		 	id=#{id}
+		 </foreach>
+		 
+		 <!-- 思考，如何拼接下边的sql
+		 AND id IN(3,4)
+		  -->
+	</sql>
+	
+	<!-- 查询订单信息
+	针对综合查询sql，传入包装类型对象（其中包括 了不同的条件）
+	 -->
+	<select id="findOrders" parameterType="queryOrdersVo" resultType="orders">
+		SELECT orders.* FROM orders 
+		<where>
+			<include refid="query_orders_where"></include>
+		</where>
+		
+	</select>
+	
+	<!-- 订单查询，延迟加载用户的resultMap -->
+	<resultMap type="orders" id="OrdersUserLazyLoadResultMap">
+		<!-- 订单信息映射 -->
+		<id column="id" property="id"/>
+		<result column="user_id" property="userId"/>
+		<result column="number" property="number"/>
+		<result column="createtime" property="createtime"/>
+		<result column="note" property="note"/>
+		
+		<!--用户信息延迟加载
+		把延迟加载 的用户信息设置到
+		select：延迟加载执行statement的id，完成根据订单表中的外键user_id查询用户信息，需要定义一个这样的statement
+		column：延迟加载传给select的列名
+		  -->
+		<association property="user" select="cn.itcast.mybatis.mapper.UserMapper.findUserById" 
+		column="user_id">
+
+		</association>
+	</resultMap>
+	
+	<!-- 查询订单关联查询用户，用户信息延迟加载 -->
+	<select id="findOrdersUserLazyLoad" resultMap="OrdersUserLazyLoadResultMap">
+		<!-- 主查询内容是订单信息 -->
+		SELECT * FROM orders
+	</select>
+	
+	<!-- 查询订单关联查询用户一对一
+	使用resultType，保证指定的pojo中属性和sql查询列一一对应，因为原来的orders中没有用户信息的字段，需要定义一个扩展的pojo
+	包括 所有字段，一般情况建议对扩展的pojo采取自定义方式
+	 -->
+	<select id="findOrdersAndUserList" resultType="cn.itcast.mybatis.po.OrdersCustom">
+		SELECT 
+		  orders.*,
+		  username,
+		  sex,
+		  address 
+		FROM
+		  orders,
+		  USER 
+		WHERE orders.user_id = user.id 
+	</select>
+	
+	<!-- 定义一个resultMap，完成订单关联查询用户信息的映射 -->
+	<resultMap type="orders" id="OrdersAndUserListResultMap">
+		<!-- 订单信息映射
+		id：订单信息的唯一标识 
+		 -->
+		<id column="id" property="id"/>
+		<result column="user_id" property="userId"/>
+		<result column="number" property="number"/>
+		<result column="createtime" property="createtime"/>
+		<result column="note" property="note"/>
+		
+		<!-- 用户信息映射 -->
+		<!-- 
+		从订单查询用户是一对一关联查询，这里使用association
+		association：完成关联查询一个对象，对这一个对象进行映射
+		property：将用户信息映射到orders对象 的哪个属性中
+		javaType：user属性的类型
+		 -->
+		 <association property="user" javaType="cn.itcast.mybatis.po.User">
+		 	<!-- id：表示用户信息的唯一标识
+		 	property：将user_id列的值映射到user的哪个属性中
+		 	
+		 	  -->
+		 	<id column="user_id" property="id"/>
+		 	<!-- result：用户信息的 普通列映射 -->
+		 	<result column="username" property="username"/>
+		 	<result column="sex" property="sex"/>
+		 	<result column="address" property="address"/>
+		 
+		 </association>
+	
+	</resultMap>
+	
+	<!-- 订单关联订单明细resultMap -->
+	<resultMap type="orders" id="OrdersAndDetailListResultMap" extends="OrdersAndUserListResultMap">
+		<!-- 订单信息映射、用户信息映射由于使用继承，不用在此配置了 -->
+		
+		
+		<!-- 明细信息映射
+		property：将明细信息映射到orders的哪个属性
+		ofType：orderdetails中的pojo类型
+		 -->
+		<collection property="orderdetails" ofType="cn.itcast.mybatis.po.Orderdetail" >
+			<!-- 
+			id：订单明细唯一标识 
+			property：将orderdetail_id列的值映射到ofType指定的pojo的哪个属性中
+			 -->
+			<id column="orderdetail_id" property="id"/>
+			
+			<result column="items_num" property="itemsNum"/>
+			<result column="items_id" property="itemsId"/>
+		
+		</collection>
+		
+		
+	</resultMap>
+	
+	<!-- 用户关联商品的resultMap -->
+	<resultMap type="user" id="UserAndItemsListResultMap">
+		<!-- 用户信息
+		id：用户信息唯一标识
+		 -->
+		<id column="user_id" property="id"/>
+		<result column="username" property="username"/>
+	 	<result column="sex" property="sex"/>
+	 	<result column="address" property="address"/>
+		
+		<!-- 订单信息
+		一个用户对象多个订单，使用collection
+		property：订单信息映射到user中的哪个属性中
+		ofType：orders中的pojo类型
+		 -->
+		 <collection property="orders" ofType="cn.itcast.mybatis.po.Orders">
+		 	<!-- id：订单的唯一标识  -->
+		 	<id column="id" property="id"/>
+			<result column="user_id" property="userId"/>
+			<result column="number" property="number"/>
+			<result column="createtime" property="createtime"/>
+			<result column="note" property="note"/>
+			
+				<!-- 订单明细信息
+			一个订单对应多个明细，使用collection
+			property：将订单明细映射到orders中的orderdetails
+			ofType：orderdetails中的pojo类型
+			 -->
+			<collection property="orderdetails" ofType="cn.itcast.mybatis.po.Orderdetail">
+				<!-- 这里边是明细的映射配置 -->
+				<id column="orderdetail_id" property="id"/>
+			
+				<result column="items_num" property="itemsNum"/>
+				<result column="items_id" property="itemsId"/>
+						<!-- 商品信息
+				一个订单明细对应一个商品，使用association
+				
+				property：将商品信息映射到明细对象orderdetail中items属性
+				javaType：items属性的类型
+				 -->
+				 <association property="items" javaType="cn.itcast.mybatis.po.Items">
+				 	<!-- 在这里是商品的映射配置 -->
+				 	<id column="items_id" property="id"/>
+				 	<result column="name" property="name"/>
+				 	<result column="price" property="price"/>
+				 </association>
+			</collection>
+			
+		 </collection>
+
+		
+		
+		
+	</resultMap>
+	
+	<!-- 一对一查询使用resultMap -->
+	<select id="findOrdersAndUserListResultMap" resultMap="OrdersAndUserListResultMap">
+		SELECT 
+		  orders.*,
+		  username,
+		  sex,
+		  address 
+		FROM
+		  orders,
+		  USER 
+		WHERE orders.user_id = user.id 
+	</select>
+	
+	<!-- 一对多查询订单关联查询订单明细 -->
+	<select id="findOrdersAndDetailList" resultMap="OrdersAndDetailListResultMap">
+		SELECT 
+		  orders.*,
+		  orderdetail.id orderdetail_id,
+		  orderdetail.items_num,
+		  orderdetail.items_id,
+		  username,
+		  sex,
+		  address 
+		FROM
+		  orders,
+		  USER,
+		  orderdetail
+		WHERE orders.user_id = user.id AND orders.id = orderdetail.orders_id
+	</select>
+	
+	<!-- 查询用户关联查询商品 -->
+	<select id="findUserAndItemsList" resultMap="UserAndItemsListResultMap">
+	SELECT 
+	  orders.*,
+	  orderdetail.id orderdetail_id,
+	  orderdetail.items_num,
+	  orderdetail.items_id,
+	  username,
+	  sex,
+	  address,
+	  items.name,
+	  items.price
+	FROM
+	  orders,
+	  USER,
+	  orderdetail,
+	  items
+	WHERE orders.user_id = user.id AND orders.id = orderdetail.orders_id AND items.id=orderdetail.items_id
+	
+	</select>
+	
+	
+</mapper>

@@ -30,6 +30,9 @@ import cn.itcast.mybatis.po.User;
  */
 public class MybatisFirst {
 	
+	
+	
+
 	// 根据用户id查询用户信息
 	@Test
 	public void findUserById() throws IOException {
@@ -53,7 +56,7 @@ public class MybatisFirst {
 
 		System.out.println(user);
 
-		// 手动关闭sqlsession
+		// 关闭sqlsession
 		sqlSession.close();
 
 	}
@@ -105,19 +108,23 @@ public class MybatisFirst {
 		// 通过sqlsession操作数据库
 		// 构造 一个user对象作为输入 参数
 		User user = new User();
-		user.setUsername("燕青1");
+		user.setUsername("燕青");
 		user.setAddress("河南郑州");
 
 		sqlSession.insert("test.insertUser", user);
 		
 		//得到用户新记录的id
 		System.out.println(user.getId());
+		
 
 		// 提交
 		sqlSession.commit();
 		
+		
+
 		// 关闭sqlsession
 		sqlSession.close();
+
 	}
 
 	// 删除
@@ -145,6 +152,7 @@ public class MybatisFirst {
 
 		// 关闭sqlsession
 		sqlSession.close();
+
 	}
 
 	// 更新
@@ -178,6 +186,7 @@ public class MybatisFirst {
 
 		// 关闭sqlsession
 		sqlSession.close();
+
 	}
 
 }

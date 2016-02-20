@@ -11,6 +11,7 @@ public class UserDaoImpl implements UserDao {
 	
 	private SqlSessionFactory sqlSessionFactory;
 	
+	
 
 	//通过构造 方法进行注入
 	//将来和spring整合后，通过set方法进行注入

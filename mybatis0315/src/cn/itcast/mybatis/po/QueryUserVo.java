@@ -26,10 +26,10 @@ public class QueryUserVo {
 		this.user = user;
 	}
 	
-	//商品信息POJO
+	//商品信息
 	//private Items items;
 	
-	//订单信息POJO
+	//订单信息
 	//private Orders orders;
 	
 	
